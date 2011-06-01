@@ -5,10 +5,9 @@ various logging frameworks (especially Log4r) it makes it easy to send stats
 information to multiple destinations via the use of Handlers. Right out of the 
 box, it supports sending stats to the following:
 
-* A statsd daemon for ridiculously easy Graphite stats
+* A [statsd daemon](https://github.com/etsy/statsd/) for ridiculously easy [Graphite](http://graphite.wikidot.com/) stats
 * An in-memory hash for in-process stats
-* A log file for later aggregation
-* Redis (you'll need the redis gem)
+* Redis (you'll need the [redis gem](https://github.com/ezmobius/redis-rb))
 
 Philosophy
 ----------
@@ -41,6 +40,9 @@ app and stay sane. Camayoc does this as well.
 
 Let's say you have a service within your app where you want to store some timing 
 data.
+
+    stats = Camayoc["my_app"]
+    stats.add(Camayoc::Handlers::Statsd.new(:host=>"localhost",:port=>1234))
 
     class AwesomeService
       def be_awesome
@@ -83,6 +85,50 @@ Sometimes you may want to send only certain stats to certain places.
     foo_stats.increment("baz",1000) #Stats go to redis and statsd
     foo_stats.increment("bar",5)    #Stats only go to statsd, not redis
     
+Available Handlers
+==================
+Statsd
+------
+Class: Camayoc::Handlers::Statsd
+
+This handler sends data to the statd daemon for use in graphite. If you can get 
+graphite and statsd going, then you'll get pretty graphs.
+
+Redis
+-----
+Class: Camayoc::Handlers::Redis    
+
+This is a very, very simple implementation that stores some data in redis. It 
+is in no way a full-fledged time-based stats system. It does make it easy to 
+collect some simple counts and some timing data. You can easily retrieve the 
+stored data from redis by using the #get method.
+
+Memory
+------
+Class: Camayoc::Handlers::Memory
+
+Stores counts and timing data in an in-memory hash. This might be handy for 
+storing some temporary in-process stats.
+
+Implmenting a Handler
+=====================
+Let's say you want to implement your own handler, pehaps to MongoDB. Handlers 
+just need to respond to a simple interface. See Camayoc::Handlers::StatEvent 
+for info on the argument to the two methods.
+
+    class SomeHandler
+      def count(stat_event)
+        # Do something
+      end
+      
+      def timing(stat_event)
+        # Do something
+      end
+    end
+
+If you write a handler and would like it included in Camayoc, please fork 
+and send a pull request and we'll get it integrated in.
+
 Acknowledgements
 ================
 * The basic structure of Camayoc owes a lot of [Log4r](http://log4r.rubyforge.org/)
