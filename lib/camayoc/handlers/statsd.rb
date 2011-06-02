@@ -1,5 +1,7 @@
 require 'socket'
 
+# This class is a port of the code in https://github.com/reinh/statsd to fit 
+# with the Camayoc handler interface.
 module Camayoc
   module Handlers
     class Statsd
@@ -8,8 +10,6 @@ module Camayoc
 
       attr_accessor :namespace
       
-      # @param [String] host your statsd host
-      # @param [Integer] port your statsd port
       def initialize(options={})
         self.namespace = options[:namespace]
         @host = options[:host]
