@@ -2,6 +2,8 @@ require 'redis'
 
 module Camayoc
   module Handlers
+
+    # This class is experimental.
     class Redis
       
       def initialize(options={})
@@ -17,25 +19,22 @@ module Camayoc
         stat = event.ns_stat
         ms = event.value
         @redis.set(key(stat),"timing")
-        @redis.incrby(key("t:count:#{stat}"),1)
-        @redis.incrby(key("t:total:#{stat}"),ms)
-        zkey = key("t:range:#{stat}")
-        @redis.zadd(zkey,ms,ms)
-        @redis.zremrangebyrank(zkey,1,-2)
+        @redis.incrby(key("#{stat}:_count"),1)
+        @redis.incrby(key("#{stat}:_total"),ms)
       end
 
       def get(stat)
         value = @redis.get(key(stat))
         if value == "timing"
-          range = @redis.zrange(key("t:range:#{stat}"),0,-1)
           Timing.new(
-            @redis.get(key("t:total:#{stat}")).to_i, 
-            @redis.get(key("t:count:#{stat}")).to_i,
-            range.first.to_i, 
-            range.last.to_i
+            @redis.get(key("#{stat}:_total")).to_i, 
+            @redis.get(key("#{stat}:_count")).to_i,
+            nil,nil # Don't support min and max right now in redis
           )
-        else
+        elsif value
           value.to_i
+        else
+          nil
         end
       end
       alias_method :[], :get
