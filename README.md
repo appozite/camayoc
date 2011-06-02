@@ -91,6 +91,10 @@ Sometimes you may want to send only certain stats to certain places.
     foo_stats.increment("baz",1000) #Stats go to redis and statsd
     foo_stats.increment("bar",5)    #Stats only go to statsd, not redis
     
+There are other options as well like :if and :unless that take Procs that can 
+be executed to determine if a metric should be sent to the specified handler.
+See Camayoc::Handlers::Filter for more.
+
 Available Handlers
 ==================
 Statsd
