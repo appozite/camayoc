@@ -1,26 +1,22 @@
 module Camayoc
   module Handlers
-    class IO
+
+    # Write to a raw IO stream with optional thread-safe locking before writing 
+    # to the stream. By default, each stat message is written on a single line 
+    # using puts. See the options in Camayoc::Handlers:Logger for options.
+    class IO < Logger
 
       include ThreadSafety
 
-      def initialize(io=$stdout,options={})
-        @io = io
+      def initialize(io,options={})
+        super(io,{:method=>:puts}.merge(options))
         self.thread_safe = Camayoc.thread_safe?
       end
 
-      def count(event)
-        puts(:c,event.ns_stat,event.value)
-      end
-
-      def timing(event)
-        puts(:t,event.ns_stat,event.value)
-      end
-
-      private
-        def puts(type,stat,value)
+      protected
+        def write(type,event)
           synchronize do
-            @io.puts("#{type} #{stat} #{value} #{Time.now.utc.to_i}")
+            super(type,event)
           end
         end
 
