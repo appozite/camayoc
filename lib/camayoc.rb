@@ -5,6 +5,7 @@ require 'camayoc/handlers/timing'
 require 'camayoc/handlers/filter'
 require 'camayoc/handlers/io'
 require 'camayoc/handlers/memory'
+require 'camayoc/handlers/statsd'
 require 'camayoc/stats'
 
 module Camayoc  
