@@ -63,8 +63,8 @@ module Camayoc
         handlers.each do |handler|
           begin
             yield(handler)
-          rescue => e
-            puts e
+          rescue
+            # Swallow up errors
           end
         end
       end
