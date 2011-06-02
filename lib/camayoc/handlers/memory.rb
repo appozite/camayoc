@@ -11,7 +11,7 @@ module Camayoc
 
       def count(event)
         stat = event.ns_stat
-        synchronized do
+        synchronize do
           @data[stat] ||= 0
           @data[stat] += event.value
         end
