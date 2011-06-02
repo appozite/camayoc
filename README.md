@@ -11,6 +11,8 @@ box, it supports sending stats to the following:
 
 Philosophy
 ----------
+Application stats are critical. But even critical things get ignored if they're 
+hard (believe me, we know). Stats should be easy:
 * Collecting stats should take just one line of code
 * All stat collection should be fire-and-forget with no error handling required
 * Organizing stats should be easy
@@ -21,7 +23,9 @@ Examples
 Here's all it takes to fire stats to statsd. 
 
     require 'camayoc'
+    # Grab a stats instance
     stats = Camayoc["my_app"]
+    # Add a handler for statsd
     stats.add(Camayoc::Handlers::Statsd.new(:host=>"localhost",:port=>1234))
     
     # later in your app
@@ -30,7 +34,8 @@ Here's all it takes to fire stats to statsd.
       Camayoc["my_app"].increment("did_stuff")
     end
     
-Your stats will show up in graphite under "stats.my_app.did_stuff"
+Your stat will be sent to statsd with the name "my_app.did_stuff". See the 
+statsd docs for more information about how that gets translated into Graphite.
 
 Namespaces
 ----------
