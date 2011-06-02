@@ -7,7 +7,8 @@ box, it supports sending stats to the following:
 
 * A [statsd daemon](https://github.com/etsy/statsd/) for ridiculously easy [Graphite](http://graphite.wikidot.com/) stats
 * An in-memory hash for in-process stats
-* Redis (you'll need the [redis gem](https://github.com/ezmobius/redis-rb))
+* A logger or IO stream
+* Redis (EXPERIMENTAL - you'll need the [redis gem](https://github.com/ezmobius/redis-rb))
 
 Philosophy
 ----------
@@ -104,15 +105,6 @@ Class: Camayoc::Handlers::Statsd
 This handler sends data to the statd daemon for use in graphite. If you can get 
 graphite and statsd going, then you'll get pretty graphs.
 
-Redis
------
-Class: Camayoc::Handlers::Redis    
-
-This is a very, very simple implementation that stores some data in redis. It 
-is in no way a full-fledged time-based stats system. It does make it easy to 
-collect some simple counts and some timing data. You can easily retrieve the 
-stored data from redis by using the #get method.
-
 Memory
 ------
 Class: Camayoc::Handlers::Memory
@@ -120,8 +112,34 @@ Class: Camayoc::Handlers::Memory
 Stores counts and timing data in an in-memory hash. This might be handy for 
 storing some temporary in-process stats.
 
-Implmenting a Handler
-=====================
+Logger
+------
+Class: Camayoc::Handlers::Logger
+
+Writes out stat values and a timestamp to a logger instance for later analysis.
+The format and method called on the logger can be controlled by constructor 
+arguments. See the class for details.
+
+IO
+--
+Class: Camayoc::Handlers::IO
+
+Writes out stats values and a timestamp to some stream of your choice. See 
+class for configuration details.
+
+Redis (Experimental)
+--------------------
+Class: Camayoc::Handlers::Redis (require "camayoc/handlers/redis" first) 
+
+The redis gem is required to use this handler. This is a very, very simple 
+implementation that stores some data in redis. It is in no way a full-fledged 
+time-based stats system. It does make it easy to collect some simple counts and 
+some timing data. You can easily retrieve the stored data from redis by using 
+the #get method.
+
+
+Implementing a Handler
+======================
 Let's say you want to implement your own handler, pehaps to MongoDB. Handlers 
 just need to respond to a simple interface. See Camayoc::Handlers::StatEvent 
 for info on the argument to the two methods.
