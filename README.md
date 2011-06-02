@@ -13,6 +13,7 @@ Philosophy
 ----------
 Application stats are critical. But even critical things get ignored if they're 
 hard (believe me, we know). Stats should be easy:
+
 * Collecting stats should take just one line of code
 * All stat collection should be fire-and-forget with no error handling required
 * Organizing stats should be easy
