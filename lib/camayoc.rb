@@ -1,4 +1,5 @@
 require 'rubygems'
+require 'camayoc/version'
 require 'camayoc/thread_safety'
 require 'camayoc/stat_event'
 require 'camayoc/handlers/timing'
