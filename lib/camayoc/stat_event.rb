@@ -3,7 +3,7 @@ module Camayoc
 
     attr_accessor :source, :stat, :value, :options
 
-    def initialize(source,stat,value,options)
+    def initialize(source,stat,value,options={})
       self.source = source
       self.stat = stat
       self.value = value
