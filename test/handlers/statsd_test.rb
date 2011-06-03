@@ -16,7 +16,7 @@ class StatsdTest < Test::Unit::TestCase
 
   private
     def expect_message(message)
-      @statsd.__send__(:socket).expects(:send).with(message,0,"localhost",1234)
+      @statsd.instance_variable_get("@socket").expects(:send).with(message,0,"localhost",1234)
     end
 
 end
