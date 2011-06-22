@@ -51,6 +51,18 @@ class RegistrationTest < Test::Unit::TestCase
     assert_equal([root,middle,child1,child2],all)
   end
 
+  def test_brackets_on_stats_gets_namespaced_descendant
+    parent = Camayoc["foo:bar"]
+    desc = parent["a:b:c"]
+    assert_equal(Camayoc.join(parent.name,"a:b:c"),desc.name)
+    assert_equal(parent,desc.parent)
+  end
+
+  def test_join_builds_name_with_delimiter
+    assert_equal("a:b:c",Camayoc.join("a","b","c"))
+    assert_equal("foo:bar:baz",Camayoc.join(%w(foo bar:baz)))
+  end
+
   def teardown
     Camayoc.instance_variable_get("@registry").clear
   end

@@ -38,6 +38,10 @@ module Camayoc
       @thread_safe == true
     end
 
+    def join(*names)
+      names.flatten.join(DELIMITER)
+    end
+
     private
       def _new(name)
         stats = Stats.new(name,ancestor(name))
@@ -58,7 +62,7 @@ module Camayoc
         ancestor = nil
         path = name.split(DELIMITER)
         while path.pop && !ancestor
-          ancestor = @registry[path.join(DELIMITER)]
+          ancestor = @registry[join(path)]
         end
         ancestor
       end

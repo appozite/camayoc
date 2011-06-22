@@ -8,7 +8,11 @@ module Camayoc
       self.parent = parent
       self.handlers = []
     end
-    
+
+    def [](descendant_name)
+      Camayoc[Camayoc.join(name,descendant_name)]
+    end
+
     def add(handler,filter_opts={})
       if !filter_opts.empty?
         handler = Handlers::Filter.new(handler,filter_opts)
