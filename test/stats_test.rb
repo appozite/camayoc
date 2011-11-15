@@ -10,14 +10,14 @@ class StatsTest < Test::Unit::TestCase
     h2 = mock("handler2")
     @stats.add(h2)
     
-    @handler.expects(:count).with(kind_of(Camayoc::StatEvent))
-    h2.expects(:count).with(kind_of(Camayoc::StatEvent))
+    @handler.expects(:event).with(kind_of(Camayoc::StatEvent))
+    h2.expects(:event).with(kind_of(Camayoc::StatEvent))
     @stats.count("count",500)
   end
   
   def test_count_generates_correct_stat_event
-    @handler.expects(:count).with(
-      &stat_event_match("foo:bar","count",500,{:pass_through=>true}))
+    @handler.expects(:event).with(
+      &stat_event_match(:count,"foo:bar","count",500,{:pass_through=>true}))
     @stats.count("count",500,:pass_through=>true)
   end
 
@@ -25,10 +25,10 @@ class StatsTest < Test::Unit::TestCase
     @stats.parent = Camayoc::Stats.new("foo")
 
     seq = sequence("firing")
-    evt = stat_event_match("foo:bar","count",100,{:pass_through=>true})
-    @handler.expects(:count).with(&evt).in_sequence(seq)
-    @stats.parent.expects(:count_event).with(&evt).in_sequence(seq)
-    
+    evt = stat_event_match(:count,"foo:bar","count",100,{:pass_through=>true})
+    @handler.expects(:event).with(&evt).in_sequence(seq)
+    @stats.parent.expects(:event).with(&evt).in_sequence(seq)
+
     @stats.count("count",100,:pass_through=>true)
   end
 
@@ -45,15 +45,17 @@ class StatsTest < Test::Unit::TestCase
   def test_timing_fires_to_all_handlers
     h2 = mock("handler2")
     @stats.add(h2)
-    
-    @handler.expects(:timing).with(kind_of(Camayoc::StatEvent))
-    h2.expects(:timing).with(kind_of(Camayoc::StatEvent))
+
+    @handler.expects(:event).with(
+      &stat_event_match(:timing,"foo:bar","time",500))
+    h2.expects(:event).with(
+      &stat_event_match(:timing,"foo:bar","time",500))
     @stats.timing("time",500)
   end
 
   def test_timing_generates_correct_stat_event
-    @handler.expects(:timing).with(
-      &stat_event_match("foo:bar","time",1,{:pass_through=>true}))
+    @handler.expects(:event).with(
+      &stat_event_match(:timing,"foo:bar","time",1,{:pass_through=>true}))
     @stats.timing("time",1,:pass_through=>true)
   end
 
@@ -61,10 +63,10 @@ class StatsTest < Test::Unit::TestCase
     @stats.parent = Camayoc::Stats.new("foo")
 
     seq = sequence("firing")
-    evt = stat_event_match("foo:bar","time",100,{:pass_through=>true})
-    @handler.expects(:timing).with(&evt).in_sequence(seq)
-    @stats.parent.expects(:timing_event).with(&evt).in_sequence(seq)
-    
+    evt = stat_event_match(:timing,"foo:bar","time",100,{:pass_through=>true})
+    @handler.expects(:event).with(&evt).in_sequence(seq)
+    @stats.parent.expects(:event).with(&evt).in_sequence(seq)
+
     @stats.timing("time",100,:pass_through=>true)
   end
 
@@ -73,8 +75,8 @@ class StatsTest < Test::Unit::TestCase
     @stats.add(h2)
 
     seq = sequence("firing")
-    @handler.expects(:count).raises("FAIL").in_sequence(seq)
-    h2.expects(:count).in_sequence(seq)
+    @handler.expects(:event).raises("FAIL").in_sequence(seq)
+    h2.expects(:event).in_sequence(seq)
 
     assert_nothing_raised do
       @stats.count("baz",100)
@@ -85,7 +87,8 @@ class StatsTest < Test::Unit::TestCase
     def stat_event_match(*args)
       template = Camayoc::StatEvent.new(*args)
       Proc.new do |event|
-        event.source == template.source &&
+        event.type == template.type &&
+          event.source == template.source &&
           event.stat == template.stat &&
           event.value == template.value &&
           event.options == template.options

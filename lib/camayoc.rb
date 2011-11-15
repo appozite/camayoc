@@ -10,7 +10,7 @@ require 'camayoc/handlers/memory'
 require 'camayoc/handlers/statsd'
 require 'camayoc/stats'
 
-module Camayoc  
+module Camayoc
 
   DELIMITER = ":"
 
@@ -19,7 +19,7 @@ module Camayoc
 
   class << self
     def [](name)
-      @lock.synchronize { @registry[name] ||= _new(name) }  
+      @lock.synchronize { @registry[name] ||= _new(name) }
     end
 
     def new(name)
@@ -33,7 +33,7 @@ module Camayoc
     def thread_safe=(value)
       @thread_safe = value
     end
-    
+
     def thread_safe?
       @thread_safe == true
     end

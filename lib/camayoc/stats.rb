@@ -8,7 +8,7 @@ module Camayoc
       self.parent = parent
       self.handlers = []
     end
-    
+
     def add(handler,filter_opts={})
       if !filter_opts.empty?
         handler = Handlers::Filter.new(handler,filter_opts)
@@ -22,7 +22,7 @@ module Camayoc
     end
 
     def increment(stat,options={})
-      count(stat,1,options)  
+      count(stat,1,options)
     end
 
     def decrement(stat,options={})
@@ -30,36 +30,30 @@ module Camayoc
     end
 
     def count(stat,value,options={})
-      count_event(StatEvent.new(name,stat,value,options))
+      event(:count,stat,value,options)
     end
 
-    def timing(stat,ms,options={})
-      timing_event(StatEvent.new(name,stat,ms,options))
+    def timing(stat,value,options={})
+      event(:timing,stat,value,options)
     end
-    
+
+    def event(type,stat,value,options={})
+      propagate_event(StatEvent.new(type,name,stat,value,options))
+    end
+
     protected
-      def count_event(event)
+      def propagate_event(ev)
         each_handler do |handler|
-          handler.count(event)
+          handler.event(ev)
         end
         if parent
-          parent.count_event(event)
-        end
-        self
-      end
-
-      def timing_event(event)
-        each_handler do |handler|
-          handler.timing(event)
-        end
-        if parent
-          parent.timing_event(event)
+          parent.event(ev)
         end
         self
       end
 
     private
-      def each_handler 
+      def each_handler
         handlers.each do |handler|
           begin
             yield(handler)

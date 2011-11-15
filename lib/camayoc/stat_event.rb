@@ -1,10 +1,11 @@
 module Camayoc
   class StatEvent
 
-    attr_accessor :source, :stat, :value, :options
+    attr_accessor :type, :source, :stat, :value, :options
 
-    def initialize(source,stat,value,options={})
+    def initialize(type,source,stat,value,options={})
       self.source = source
+      self.type = type
       self.stat = stat
       self.value = value
       self.options = options
