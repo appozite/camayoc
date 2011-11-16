@@ -2,6 +2,12 @@ module Camayoc
   module Handlers
     class Filter
 
+      # Constructor - by default, returns true
+      # * +dest+ :: Handler
+      # * +options[]+
+      # * +  :with+ :: Regexp matching against event namespace
+      # * +  :if+ :: Proc taking type and event returning true
+      # * +  :unless+ :: Converse of +if+
       def initialize(dest,options={},&block)
         @dest = dest
         if block_given?
@@ -22,28 +28,10 @@ module Camayoc
       end
 
       def event(ev)
-        case ev.type
-          when :count then count(ev)
-          when :timing then timing(ev)
+        if @filter.call(ev.type,ev)
+          @dest.event(ev)
         end
       end
-
-      private
-        def count(event)
-          if allowed?(:count,event)
-            @dest.count(event)
-          end
-        end
-
-        def timing(event)
-          if allowed?(:timing,event)
-            @dest.timing(event)
-          end
-        end
-
-        def allowed?(type,event)
-          @filter.call(type,event)
-        end
 
     end
   end

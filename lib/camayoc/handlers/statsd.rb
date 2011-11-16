@@ -19,8 +19,8 @@ module Camayoc
 
       def event(ev)
         case ev.type
-          when :count then count(ev)
           when :timing then timing(ev)
+          else count(ev)
         end
       end
 

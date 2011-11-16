@@ -15,6 +15,7 @@ module Camayoc
         case ev.type
           when :count  then count(ev)
           when :timing then timing(ev)
+          # generic not implemented!
         end
       end
 

@@ -41,4 +41,49 @@ class MemoryTest < Test::Unit::TestCase
     @handler.expects(:timing).never
     @handler.event(Camayoc::StatEvent.new(:throwaway,"foo:bar","time",500))
   end
+
+  def test_add_generic_event
+    @handler.expects(:generic).once
+    @handler.event(Camayoc::StatEvent.new(:generic,"foo:bar","time",50))
+  end
+
+  def test_safe_defaults_for_max_events_falls_back
+    @handler = Camayoc::Handlers::Memory.new
+    assert_equal(Camayoc::Handlers::Memory::DEFAULT_MAX_EVENTS,
+      @handler.max_events)
+
+    @handler = Camayoc::Handlers::Memory.new(:max_events=>"apple pie")
+    assert_equal(Camayoc::Handlers::Memory::DEFAULT_MAX_EVENTS,
+      @handler.max_events)
+
+    @handler = Camayoc::Handlers::Memory.new(:max_events=>"0")
+    assert_equal(Camayoc::Handlers::Memory::DEFAULT_MAX_EVENTS,
+      @handler.max_events)
+
+    @handler = Camayoc::Handlers::Memory.new(:max_events=>"-1")
+    assert_equal(Camayoc::Handlers::Memory::DEFAULT_MAX_EVENTS,
+      @handler.max_events)
+
+    # valid value for good measure
+    @handler = Camayoc::Handlers::Memory.new(:max_events=>"1")
+    assert_equal(1,@handler.max_events)
+  end
+
+  def test_capped_fifo_generic_events
+    max_events = 10
+    @handler = Camayoc::Handlers::Memory.new(:max_events=>max_events)
+
+    overflow = 3
+    num_events = max_events + overflow
+
+    num_events.times do |idx|
+      @handler.event(Camayoc::StatEvent.new(:generic,
+        "foo:bar","beep",{:idx=>idx}))
+    end
+    beeps = @handler['foo:bar:beep']
+    assert_equal(max_events,beeps.size)
+    assert_equal({:idx=>overflow+max_events-1},beeps[0])
+    assert_equal({:idx=>overflow},beeps[-1])
+  end
+
 end

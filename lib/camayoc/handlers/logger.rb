@@ -16,9 +16,11 @@ module Camayoc
       end
 
       def event(ev)
-        case ev.type
-          when :count then count(ev)
-          when :timing then timing(ev)
+        msg = formatter.call(ev.type,ev)
+        if @method
+          @logger.send(@method,msg)
+        else
+          @logger.debug(msg)
         end
       end
 
@@ -27,24 +29,6 @@ module Camayoc
           "#{type} #{event.ns_stat} #{event.value} #{Time.now.utc.to_i}"
         end
       end
-
-      protected
-        def count(event)
-          write(:count,event)
-        end
-
-        def timing(event)
-          write(:timing,event)
-        end
-
-        def write(type,event)
-          msg = formatter.call(type,event)
-          if @method
-            @logger.send(@method,msg)
-          else
-            @logger.debug(msg)
-          end
-        end
 
     end
   end

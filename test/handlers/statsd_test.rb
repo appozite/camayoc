@@ -14,9 +14,9 @@ class StatsdTest < Test::Unit::TestCase
     @statsd.event(Camayoc::StatEvent.new(:timing,"foo:bar","time",100,{}))
   end
 
-  def test_timing_sends_correct_statsd_message
-    never_expect_message
-    @statsd.event(Camayoc::StatEvent.new(:throwaway,"foo:bar","time",100,{}))
+  def test_generic_sends_count_statsd_message
+    expect_message("foo.bar.beep:1|c")
+    @statsd.event(Camayoc::StatEvent.new(:count,"foo:bar","beep",1,{}))
   end
 
   private

@@ -30,8 +30,7 @@ class LoggerTest < Test::Unit::TestCase
   end
 
   def test_ignore_unknown_event_type
-    @handler.expects(:count).never
-    @handler.expects(:timing).never
+    expect_message(:debug,/throwaway foo:bar:time 500/)
     @handler.event(Camayoc::StatEvent.new(:throwaway,"foo:bar","time",500))
   end
 
