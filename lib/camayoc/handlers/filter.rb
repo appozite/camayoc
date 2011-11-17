@@ -23,7 +23,7 @@ module Camayoc
             !proc.call(type,event)
           end
         else
-          @filter = Proc.new {|args| true }
+          @filter = Proc.new { true }
         end
       end
 
