@@ -9,14 +9,18 @@ module Camayoc
 
       attr_accessor :logger, :method, :formatter
 
-      def initialize(logger, options={})
+      def initialize(logger, options={}, &block)
         self.logger = logger
         self.method = options[:method]
-        self.formatter = (options[:formatter] || default_formatter)
+        if block_given?
+          self.formatter = block
+        else
+          self.formatter = (options[:formatter] || default_formatter)
+        end
       end
 
       def event(ev)
-        msg = formatter.call(ev.type,ev)
+        msg = formatter.call(ev)
         if @method
           @logger.send(@method,msg)
         else
@@ -25,8 +29,8 @@ module Camayoc
       end
 
       def default_formatter
-        Proc.new do |type,event|
-          "#{type} #{event.ns_stat} #{event.value} #{Time.now.utc.to_i}"
+        Proc.new do |event|
+          "#{event.type} #{event.ns_stat} #{event.value} #{Time.now.utc.to_i}"
         end
       end
 

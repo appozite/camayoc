@@ -8,15 +8,15 @@ module Camayoc
 
       include ThreadSafety
 
-      def initialize(io=$stdout,options={})
-        super(io,{:method=>:puts}.merge(options))
+      def initialize(io=$stdout,options={},&block)
+        super(io,{:method=>:puts}.merge(options),&block)
         self.thread_safe = Camayoc.thread_safe?
       end
 
       protected
-        def write(type,event)
+        def write(event)
           synchronize do
-            super(type,event)
+            super(event)
           end
         end
 
