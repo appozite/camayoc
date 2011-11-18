@@ -19,6 +19,21 @@ class StatsdTest < Test::Unit::TestCase
     @statsd.event(Camayoc::StatEvent.new(:count,"foo:bar","beep",1,{}))
   end
 
+  def test_any_other_event_type_is_treated_as_a_count_with_value_if_value_is_integer
+    expect_message("foo.bar.beep:25|c")
+    @statsd.event(Camayoc::StatEvent.new(:foo,"foo:bar","beep",25,{}))
+  end
+
+  def test_any_other_event_type_is_treated_as_a_count_with_value_if_value_is_string_integer_representation
+    expect_message("foo.bar.beep:31|c")
+    @statsd.event(Camayoc::StatEvent.new(:foo,"foo:bar","beep","31",{}))
+  end
+
+  def test_any_other_event_type_is_treated_as_a_count_of_1_if_value_is_not_convertable_to_integer
+    expect_message("foo.bar.beep:1|c")
+    @statsd.event(Camayoc::StatEvent.new(:foo,"foo:bar","beep",{:a=>50},{}))
+  end
+
   private
     def expect_message(message)
       @statsd.instance_variable_get("@socket").expects(:send).with(message,0,"localhost",1234)

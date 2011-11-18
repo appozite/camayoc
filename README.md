@@ -137,7 +137,9 @@ graphite and statsd going, then you'll get pretty graphs.
 
 This handler does not support logging details about events since this isn't 
 really what statsd and graphite are for. Any calls to the event method will be 
-treated as count stats when sent to statsd.
+treated as counts in statsd. If the event value can be converted to an Integer 
+using Ruby's Integer method, then it will be sent as the count. Otherwise, a 
+value of 1 will be sent.
 
 Memory
 ------

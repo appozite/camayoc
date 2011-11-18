@@ -21,11 +21,17 @@ module Camayoc
       def event(ev)
         case ev.type
           when :timing then timing(ev)
-          else count(ev)
+          when :count  then count(ev)
+          else other(ev)
         end
       end
 
       private
+        def other(ev)
+          value = Integer(ev.value) rescue 1
+          send(ev.ns_stat,value,'c',ev.options[:sample_rate]||1)
+        end
+
         def count(ev)
           send(ev.ns_stat,ev.value,'c',ev.options[:sample_rate]||1)
         end
