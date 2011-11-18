@@ -52,6 +52,29 @@ module Camayoc
       count(stat,-1,options)
     end
 
+    # Executes a block, stores the timing information in the specified stat
+    # and returns the value of the block. Use this to wrap existing code with 
+    # timing information without worrying about return values.
+    def benchmark(stat,options={})
+      result = nil
+      realtime(stat,options) do
+        result = yield
+      end
+      result
+    end
+
+    # Executes a block, stores the timing information in the specified stat
+    # and returns the time **in seconds** that the execution took. This is 
+    # basically a drop-in replacement for calls to Benchmark.realtime
+    def realtime(stat,options={})
+      start_time = Time.now
+      yield
+      duration = (Time.now.to_f - start_time.to_f)
+      # Convert to ms for timing call
+      timing(stat,(duration*1000).round,options)
+      duration
+    end
+
     protected
       # Creates new StatEvent and passes to +#propagate_event+
       def propagate(type,stat,value,options)

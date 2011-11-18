@@ -44,6 +44,35 @@ class StatsTest < Test::Unit::TestCase
     @stats.decrement("count")
   end
 
+  def test_realtime_calculates_time_for_block_fires_timing_event_and_returns_time
+    start_time = Time.now
+    end_time = (Time.now + 10.5)
+    duration = end_time.to_f - start_time.to_f
+    duration_ms = (duration*1000).round
+
+    seq = sequence("duration")
+    Time.expects(:now).returns(start_time).in_sequence(seq)
+    Time.expects(:now).returns(end_time).in_sequence(seq)
+
+    @handler.expects(:event).with(
+      &stat_event_match(:timing,"foo:bar","baz",duration_ms,{:pass_through=>true}))
+
+    actual_duration = @stats.realtime("baz",:pass_through=>true) { "no-op" }
+    assert_equal(duration,actual_duration)
+  end
+
+  def test_benchmark_calls_realtime_and_returns_value_of_block
+    @stats.expects(:realtime).with("baz",:pass_through=>true).yields
+
+    block_value = rand(10000)
+    result = @stats.benchmark("baz",:pass_through=>true) do
+      block_value
+    end
+
+    assert_equal(block_value,result)
+  end
+
+
   def test_handler_errors_are_swallowed_and_firing_continues
     h2 = mock("handler2")
     @stats.add(h2)
