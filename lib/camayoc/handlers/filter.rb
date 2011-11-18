@@ -1,7 +1,13 @@
 module Camayoc
   module Handlers
     class Filter
-      
+
+      # Constructor - by default, returns true
+      # * +dest+ :: Handler
+      # * +options[]+
+      # * +  :with+ :: Regexp matching against event namespace
+      # * +  :if+ :: Proc taking type and event returning true
+      # * +  :unless+ :: Converse of +if+
       def initialize(dest,options={},&block)
         @dest = dest
         if block_given?
@@ -13,30 +19,19 @@ module Camayoc
           @filter = options[:if]
         elsif options[:unless]
           proc = options[:unless]
-          @filter = Proc.new do |type,event| 
+          @filter = Proc.new do |type,event|
             !proc.call(type,event)
           end
         else
-          @filter = Proc.new {|args| true }
+          @filter = Proc.new { true }
         end
       end
 
-      def count(event)
-        if allowed?(:count,event)
-          @dest.count(event)
+      def event(ev)
+        if @filter.call(ev.type,ev)
+          @dest.event(ev)
         end
       end
-
-      def timing(event)
-        if allowed?(:timing,event)
-          @dest.timing(event)
-        end
-      end
-
-      private
-        def allowed?(type,event)
-          @filter.call(type,event)
-        end
 
     end
   end

@@ -1,35 +1,37 @@
 class StatsTest < Test::Unit::TestCase
 
+  include EventTestHelper
+
   def setup
     @stats = Camayoc::Stats.new("foo:bar")
     @handler = mock("handler1")
     @stats.add(@handler)
   end
 
-  def test_count_fires_to_all_handlers
+  with_event_types("test_event_fires_to_all_handlers") do
     h2 = mock("handler2")
     @stats.add(h2)
-    
-    @handler.expects(:count).with(kind_of(Camayoc::StatEvent))
-    h2.expects(:count).with(kind_of(Camayoc::StatEvent))
-    @stats.count("count",500)
-  end
-  
-  def test_count_generates_correct_stat_event
-    @handler.expects(:count).with(
-      &stat_event_match("foo:bar","count",500,{:pass_through=>true}))
-    @stats.count("count",500,:pass_through=>true)
+
+    @handler.expects(:event).with(kind_of(Camayoc::StatEvent))
+    h2.expects(:event).with(kind_of(Camayoc::StatEvent))
+    @stats.send(@event_method,"beep",500)
   end
 
-  def test_count_propagates_event_to_parent_after_firing_to_handlers
+  with_event_types("test_generates_correct_stat_event") do
+    @handler.expects(:event).with(
+      &stat_event_match(@event_type,"foo:bar","beep",500,{:pass_through=>true}))
+    @stats.send(@event_method,"beep",500,:pass_through=>true)
+  end
+
+  with_event_types("test_propagates_event_to_parent_after_firing_to_handlers") do
     @stats.parent = Camayoc::Stats.new("foo")
 
     seq = sequence("firing")
-    evt = stat_event_match("foo:bar","count",100,{:pass_through=>true})
-    @handler.expects(:count).with(&evt).in_sequence(seq)
-    @stats.parent.expects(:count_event).with(&evt).in_sequence(seq)
-    
-    @stats.count("count",100,:pass_through=>true)
+    evt = stat_event_match(@event_type,"foo:bar","beep",100,{:pass_through=>true})
+    @handler.expects(:event).with(&evt).in_sequence(seq)
+    @stats.parent.expects(:propagate_event).with(&evt).in_sequence(seq)
+
+    @stats.send(@event_method,"beep",100,:pass_through=>true)
   end
 
   def test_increment_delegates_to_count
@@ -42,53 +44,46 @@ class StatsTest < Test::Unit::TestCase
     @stats.decrement("count")
   end
 
-  def test_timing_fires_to_all_handlers
-    h2 = mock("handler2")
-    @stats.add(h2)
-    
-    @handler.expects(:timing).with(kind_of(Camayoc::StatEvent))
-    h2.expects(:timing).with(kind_of(Camayoc::StatEvent))
-    @stats.timing("time",500)
+  def test_realtime_calculates_time_for_block_fires_timing_event_and_returns_time
+    start_time = Time.now
+    end_time = (Time.now + 10.5)
+    duration = end_time.to_f - start_time.to_f
+    duration_ms = (duration*1000).round
+
+    seq = sequence("duration")
+    Time.expects(:now).returns(start_time).in_sequence(seq)
+    Time.expects(:now).returns(end_time).in_sequence(seq)
+
+    @handler.expects(:event).with(
+      &stat_event_match(:timing,"foo:bar","baz",duration_ms,{:pass_through=>true}))
+
+    actual_duration = @stats.realtime("baz",:pass_through=>true) { "no-op" }
+    assert_equal(duration,actual_duration)
   end
 
-  def test_timing_generates_correct_stat_event
-    @handler.expects(:timing).with(
-      &stat_event_match("foo:bar","time",1,{:pass_through=>true}))
-    @stats.timing("time",1,:pass_through=>true)
+  def test_benchmark_calls_realtime_and_returns_value_of_block
+    @stats.expects(:realtime).with("baz",:pass_through=>true).yields
+
+    block_value = rand(10000)
+    result = @stats.benchmark("baz",:pass_through=>true) do
+      block_value
+    end
+
+    assert_equal(block_value,result)
   end
 
-  def test_timing_propagates_event_to_parent_after_firing_to_handlers
-    @stats.parent = Camayoc::Stats.new("foo")
-
-    seq = sequence("firing")
-    evt = stat_event_match("foo:bar","time",100,{:pass_through=>true})
-    @handler.expects(:timing).with(&evt).in_sequence(seq)
-    @stats.parent.expects(:timing_event).with(&evt).in_sequence(seq)
-    
-    @stats.timing("time",100,:pass_through=>true)
-  end
 
   def test_handler_errors_are_swallowed_and_firing_continues
     h2 = mock("handler2")
     @stats.add(h2)
 
     seq = sequence("firing")
-    @handler.expects(:count).raises("FAIL").in_sequence(seq)
-    h2.expects(:count).in_sequence(seq)
+    @handler.expects(:event).raises("FAIL").in_sequence(seq)
+    h2.expects(:event).in_sequence(seq)
 
     assert_nothing_raised do
       @stats.count("baz",100)
     end
   end
 
-  private
-    def stat_event_match(*args)
-      template = Camayoc::StatEvent.new(*args)
-      Proc.new do |event|
-        event.source == template.source &&
-          event.stat == template.stat &&
-          event.value == template.value &&
-          event.options == template.options
-      end
-    end
 end

@@ -1,6 +1,6 @@
 require 'socket'
 
-# This class is a port of the code in https://github.com/reinh/statsd to fit 
+# This class is a port of the code in https://github.com/reinh/statsd to fit
 # with the Camayoc handler interface.
 module Camayoc
   module Handlers
@@ -9,7 +9,7 @@ module Camayoc
       include ThreadSafety
 
       attr_accessor :namespace
-      
+
       def initialize(options={})
         self.namespace = options[:namespace]
         @host = options[:host]
@@ -18,15 +18,22 @@ module Camayoc
         self.thread_safe = Camayoc.thread_safe?
       end
 
-      def count(event)
-        send(event.ns_stat,event.value,'c',event.options[:sample_rate]||1) 
-      end
-
-      def timing(event)
-        send(event.ns_stat, event.value, 'ms', event.options[:sample_rate]||1) 
+      def event(ev)
+        case ev.type
+          when :timing then timing(ev)
+          else count(ev)
+        end
       end
 
       private
+        def count(ev)
+          send(ev.ns_stat,ev.value,'c',ev.options[:sample_rate]||1)
+        end
+
+        def timing(ev)
+          send(ev.ns_stat,ev.value,'ms',ev.options[:sample_rate]||1)
+        end
+
         def sampled(sample_rate)
           yield unless sample_rate < 1 and rand > sample_rate
         end
@@ -41,7 +48,6 @@ module Camayoc
             end
           end
         end
-
     end
   end
 end
