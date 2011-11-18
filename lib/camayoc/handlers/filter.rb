@@ -14,13 +14,13 @@ module Camayoc
           @filter = block
         elsif options[:with]
           pattern = options[:with]
-          @filter = Proc.new {|type,event| event.ns_stat =~ pattern }
+          @filter = Proc.new {|event| event.ns_stat =~ pattern }
         elsif options[:if]
           @filter = options[:if]
         elsif options[:unless]
           proc = options[:unless]
-          @filter = Proc.new do |type,event|
-            !proc.call(type,event)
+          @filter = Proc.new do |event|
+            !proc.call(event)
           end
         else
           @filter = Proc.new { true }
@@ -28,7 +28,7 @@ module Camayoc
       end
 
       def event(ev)
-        if @filter.call(ev.type,ev)
+        if @filter.call(ev)
           @dest.event(ev)
         end
       end

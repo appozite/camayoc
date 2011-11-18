@@ -7,7 +7,7 @@ class FilterTest < Test::Unit::TestCase
   end
 
   with_event_types("test_constructor_block_used_as_filter") do
-    filter = Camayoc::Handlers::Filter.new(@handler) do |type,event|
+    filter = Camayoc::Handlers::Filter.new(@handler) do |event|
       event.stat.length > 5
     end
 
@@ -17,8 +17,7 @@ class FilterTest < Test::Unit::TestCase
   end
 
   with_event_types("test_with_filters_on_namespaced_stat") do
-    filter = Camayoc::Handlers::Filter.new(@handler,
-      :with=>/a{2}/)
+    filter = Camayoc::Handlers::Filter.new(@handler,:with=>/a{2}/)
 
     evt = stat_event_match(@event_type,"foo:bar","aa_blah",500)
     @handler.expects(:event).with(&evt).once
@@ -28,7 +27,7 @@ class FilterTest < Test::Unit::TestCase
 
   def test_constructor_block_used_as_filter_with_if_condition
     filter = Camayoc::Handlers::Filter.new(@handler,
-      :if=>Proc.new{|type,event| type == :timing && event.value > 1000 })
+      :if=>Proc.new{|event| event.type == :timing && event.value > 1000 })
 
     evt = stat_event_match(:timing,"foo:bar","very_long",1500)
     @handler.expects(:event).with(&evt).once
@@ -39,7 +38,7 @@ class FilterTest < Test::Unit::TestCase
 
   def test_constructor_block_used_as_filter_with_unless_condition
     filter = Camayoc::Handlers::Filter.new(@handler,
-      :unless=>Proc.new{|type,event| type == :count })
+      :unless=>Proc.new{|event| event.type == :count })
 
     evt = stat_event_match(:timing,"foo:bar","short",500)
     @handler.expects(:event).with(&evt).once
