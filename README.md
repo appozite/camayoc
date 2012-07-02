@@ -101,8 +101,8 @@ Sometimes you may want to send only certain stats to certain places.
     foo_stats = Camayoc["my_app:foo"]
     foo_stats.add(Camayoc::Handlers::Redis.new(:host=>"localhost"),:when=>/baz/)
     
-    foo_stats.increment("baz",1000) #Stats go to redis and statsd
-    foo_stats.increment("bar",5)    #Stats only go to statsd, not redis
+    foo_stats.count("baz",1000) #Stats go to redis and statsd
+    foo_stats.count("bar",5)    #Stats only go to statsd, not redis
     
 There are other options as well like :if and :unless that take Procs that can 
 be executed to determine if a metric should be sent to the specified handler.
