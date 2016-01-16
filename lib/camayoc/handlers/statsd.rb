@@ -15,6 +15,7 @@ module Camayoc
         @host = options[:host]
         @port = options[:port]
         @socket = UDPSocket.new
+        @socket.connect(@host, @port)
         self.thread_safe = Camayoc.thread_safe?
       end
 
@@ -50,7 +51,7 @@ module Camayoc
             stat = stat.gsub(Camayoc::DELIMITER,'.')
             msg = "#{prefix}#{stat}:#{delta}|#{type}#{'|@' << sample_rate.to_s if sample_rate < 1}"
             synchronize do
-              @socket.send(msg, 0, @host, @port)
+              @socket.send(msg, 0)
             end
           end
         end
